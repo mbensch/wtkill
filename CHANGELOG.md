@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/mbensch/wtkill/compare/v1.3.0...v1.4.0) (2026-03-10)
+
+
+### Features
+
+* add ShellCheck linting and bats test suite ([#3](https://github.com/mbensch/wtkill/issues/3)) ([675a4c0](https://github.com/mbensch/wtkill/commit/675a4c08fc095cf5e65ee835c383e8a9dc6ab76a))
+
 ## [1.3.0](https://github.com/mbensch/wtkill/compare/v1.2.0...v1.3.0) (2026-03-10)
 
 
