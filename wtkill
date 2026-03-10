@@ -1,8 +1,14 @@
-#!/opt/homebrew/bin/bash
+#!/usr/bin/env bash
 # wtkill -- Interactive git worktree cleanup TUI
 # Usage: wtkill [--dry-run] [--no-fetch] [--stale-days=N] [--help]
 
 set -euo pipefail
+
+if [[ "${BASH_VERSINFO[0]}" -lt 4 ]]; then
+  echo "error: bash 4+ required (found ${BASH_VERSION})" >&2
+  echo "  macOS: brew install bash" >&2
+  exit 1
+fi
 
 VERSION="1.2.0"
 
@@ -23,6 +29,7 @@ if [[ -t 1 ]]; then
   BOLD_RED='\033[1;31m'
   BOLD_CYAN='\033[1;36m'
 else
+  # shellcheck disable=SC2034
   RESET='' BOLD='' DIM='' RED='' GREEN='' YELLOW='' BLUE='' CYAN='' WHITE=''
   BOLD_GREEN='' BOLD_YELLOW='' BOLD_WHITE='' BOLD_RED='' BOLD_CYAN=''
 fi
@@ -30,6 +37,7 @@ fi
 # ── Defaults ─────────────────────────────────────────────────────────────────
 DRY_RUN=false
 DO_FETCH=true
+REPORT_ONLY=false
 STALE_DAYS="${GIT_WT_CLEAN_STALE_DAYS:-14}"
 
 # ── Arg parsing ───────────────────────────────────────────────────────────────
@@ -37,6 +45,7 @@ for arg in "$@"; do
   case "$arg" in
     --dry-run)       DRY_RUN=true ;;
     --no-fetch)      DO_FETCH=false ;;
+    --report-only)   REPORT_ONLY=true ;;
     --stale-days=*)  STALE_DAYS="${arg#*=}" ;;
     --version|-V)
       echo "wtkill ${VERSION}"
@@ -67,6 +76,7 @@ for arg in "$@"; do
       echo "Options:"
       echo "  --dry-run          Show what would be removed without deleting"
       echo "  --no-fetch         Skip git fetch --prune"
+      echo "  --report-only      Print classification summary and exit (non-interactive)"
       echo "  --stale-days=N     Days of inactivity to mark as stale (default: 14)"
       echo "  --update           Update wtkill to the latest release"
       echo "  --version          Show version and exit"
@@ -90,7 +100,7 @@ hr() { echo -e "${DIM}$(printf '─%.0s' {1..60})${RESET}"; }
 
 # ── Pre-flight checks ─────────────────────────────────────────────────────────
 command -v git >/dev/null 2>&1 || die "git is not installed"
-command -v fzf >/dev/null 2>&1 || die "fzf is not installed (brew install fzf)"
+$REPORT_ONLY || command -v fzf >/dev/null 2>&1 || die "fzf is not installed (brew install fzf)"
 
 git rev-parse --git-dir >/dev/null 2>&1 || die "Not inside a git repository"
 
@@ -323,6 +333,7 @@ display_section() {
   local cat="$1" label="$2" colour="$3" count="$4"
   [[ "$count" -eq 0 ]] && return
   echo -e "${colour}${BOLD}● ${label}${RESET}"
+  # shellcheck disable=SC2034
   local col_path=40 col_branch=30 col_date=12 col_size=8
   printf "${DIM}  %-${col_path}s  %-${col_branch}s  %-${col_date}s  %s${RESET}\n" \
     "PATH" "BRANCH" "LAST COMMIT" "SIZE"
@@ -359,6 +370,10 @@ display_section "merged"   "MERGED — safe to remove" "$BOLD_GREEN" "$count_mer
 display_section "stale"    "STALE — no updates in ${STALE_DAYS}+ days" "$BOLD_YELLOW" "$count_stale"
 display_section "detached" "DETACHED — no branch, likely orphaned" "$BOLD_RED" "$count_detached"
 display_section "active"   "ACTIVE" "$BOLD_WHITE" "$count_active"
+
+if $REPORT_ONLY; then
+  exit 0
+fi
 
 # ── Helper: collect paths by category ────────────────────────────────────────
 paths_for_categories() {
@@ -554,7 +569,7 @@ while true; do
       ;;
     "")
       # Enter — confirm selection
-      local -a selected_cats=()
+      selected_cats=()
       $sel_merged   && selected_cats+=(merged)
       $sel_stale    && selected_cats+=(stale)
       $sel_detached && selected_cats+=(detached)
@@ -565,10 +580,9 @@ while true; do
         continue
       fi
 
-      local -a targets
+      targets=()
       mapfile -t targets < <(paths_for_categories "${selected_cats[@]}")
-      local total_sel="${#targets[@]}"
-      local total_sz
+      total_sel="${#targets[@]}"
       total_sz="$(total_size_for_categories "${selected_cats[@]}")"
 
       echo ""
