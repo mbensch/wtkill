@@ -5,8 +5,7 @@
       "extra-files": [
         {
           "type": "generic",
-          "path": "wtkill",
-          "regex": "VERSION=\"(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\""
+          "path": "wtkill"
         }
       ]
     }
