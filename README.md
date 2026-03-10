@@ -74,4 +74,4 @@ wtkill [OPTIONS]
 
 ## License
 
-No license has been specified yet.
+[MIT](LICENSE)
