@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.2](https://github.com/mbensch/wtkill/compare/v1.4.1...v1.4.2) (2026-03-10)
+
+
+### Bug Fixes
+
+* correct VERSION to 1.4.1 and add -v shorthand for --version ([#8](https://github.com/mbensch/wtkill/issues/8)) ([4acf702](https://github.com/mbensch/wtkill/commit/4acf7026f2d7ed31b06c50c50b903c1958569c15))
+
 ## [1.4.1](https://github.com/mbensch/wtkill/compare/v1.4.0...v1.4.1) (2026-03-10)
 
 
