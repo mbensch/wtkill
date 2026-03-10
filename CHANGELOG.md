@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/mbensch/wtkill/compare/v1.4.0...v1.4.1) (2026-03-10)
+
+
+### Bug Fixes
+
+* wrap install.sh body in main() to prevent curl broken pipe ([#6](https://github.com/mbensch/wtkill/issues/6)) ([1f6806c](https://github.com/mbensch/wtkill/commit/1f6806c65f8dbd806c5023d099f48ae1362f7fc2))
+
 ## [1.4.0](https://github.com/mbensch/wtkill/compare/v1.3.0...v1.4.0) (2026-03-10)
 
 
