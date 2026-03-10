@@ -31,7 +31,19 @@ $ok || { echo ""; echo "Install missing dependencies and re-run."; exit 1; }
 
 PREFIX="${PREFIX:-$HOME/.local/bin}"
 mkdir -p "$PREFIX"
-cp wtkill "$PREFIX/wtkill"
+
+if [[ -f "./wtkill" ]]; then
+  cp wtkill "$PREFIX/wtkill"
+else
+  LATEST=$(curl -fsSL https://api.github.com/repos/mbensch/wtkill/releases/latest | grep tag_name | cut -d'"' -f4)
+  if [[ -z "$LATEST" ]]; then
+    echo "ERROR: could not determine latest release from GitHub"
+    exit 1
+  fi
+  echo "Downloading wtkill ${LATEST}..."
+  curl -fsSL "https://raw.githubusercontent.com/mbensch/wtkill/$LATEST/wtkill" -o "$PREFIX/wtkill"
+fi
+
 chmod +x "$PREFIX/wtkill"
 
 echo "Installed wtkill to $PREFIX/wtkill"

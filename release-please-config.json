@@ -1,0 +1,14 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "extra-files": [
+        {
+          "type": "generic",
+          "path": "wtkill",
+          "regex": "VERSION=\"(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\""
+        }
+      ]
+    }
+  }
+}
