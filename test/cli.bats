@@ -18,6 +18,12 @@ setup() {
   [[ "$output" =~ ^wtkill\  ]]
 }
 
+@test "-v is an alias for --version" {
+  run "$WTKILL" -v
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ ^wtkill\  ]]
+}
+
 # ── --help ───────────────────────────────────────────────────────────────────
 
 @test "--help exits successfully" {
