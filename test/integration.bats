@@ -2,19 +2,9 @@
 
 WTKILL=""
 TEST_REPO=""
-BASH_BIN=""
 
 setup() {
   WTKILL="$(cd "$BATS_TEST_DIRNAME/.." && pwd)/wtkill"
-  # Find the first bash ≥4 available (Homebrew on macOS, system on Linux)
-  BASH_BIN=""
-  for _b in /opt/homebrew/bin/bash /usr/local/bin/bash /usr/bin/bash /bin/bash; do
-    if [[ -x "$_b" ]] && [[ "$("$_b" -c 'echo ${BASH_VERSINFO[0]}')" -ge 4 ]]; then
-      BASH_BIN="$_b"
-      break
-    fi
-  done
-  [[ -n "$BASH_BIN" ]] || { echo "bash 4+ not found" >&2; exit 1; }
   TEST_REPO="$(mktemp -d)"
 
   # Initialise the main repo
@@ -55,7 +45,7 @@ teardown() {
 
 _report() {
   # Run wtkill --report-only --no-fetch from within the test repo
-  run "$BASH_BIN" -c "cd '$TEST_REPO' && '$BASH_BIN' '$WTKILL' --no-fetch --report-only"
+  run bash -c "cd '$TEST_REPO' && '$WTKILL' --no-fetch --report-only"
 }
 
 # ── Classification ────────────────────────────────────────────────────────────
@@ -99,7 +89,7 @@ _report() {
 # ── --dry-run ─────────────────────────────────────────────────────────────────
 
 @test "--dry-run does not remove any worktrees" {
-  run "$BASH_BIN" -c "cd '$TEST_REPO' && printf '\n' | '$BASH_BIN' '$WTKILL' --no-fetch --dry-run"
+  run bash -c "cd '$TEST_REPO' && printf '\n' | '$WTKILL' --no-fetch --dry-run"
   # All worktree dirs must still exist
   [ -d "$TEST_REPO/wt-merged" ]
   [ -d "$TEST_REPO/wt-stale" ]
@@ -117,7 +107,7 @@ _report() {
 }
 
 @test "--stale-days=0 marks active branch as stale" {
-  run "$BASH_BIN" -c "cd '$TEST_REPO' && '$BASH_BIN' '$WTKILL' --no-fetch --report-only --stale-days=0"
+  run bash -c "cd '$TEST_REPO' && '$WTKILL' --no-fetch --report-only --stale-days=0"
   [ "$status" -eq 0 ]
   [[ "$output" == *"STALE"* ]]
 }
