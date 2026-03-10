@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.3](https://github.com/mbensch/wtkill/compare/v1.4.2...v1.4.3) (2026-03-10)
+
+
+### Bug Fixes
+
+* annotate VERSION for release-please generic updater ([#10](https://github.com/mbensch/wtkill/issues/10)) ([e33e49b](https://github.com/mbensch/wtkill/commit/e33e49bcb80962ddf43a01863330de30f9874a60))
+
 ## [1.4.2](https://github.com/mbensch/wtkill/compare/v1.4.1...v1.4.2) (2026-03-10)
 
 
