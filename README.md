@@ -56,7 +56,9 @@ wtkill [OPTIONS]
 |---|---|
 | `--dry-run` | Show what would be removed without deleting anything |
 | `--no-fetch` | Skip `git fetch --prune` |
+| `--report-only` | Print classification summary and exit (non-interactive) |
 | `--stale-days=N` | Days of inactivity before a worktree is considered stale (default: 14) |
+| `--update` | Update wtkill to the latest release |
 | `--version`, `-V` | Print version and exit |
 | `--help`, `-h` | Print help and exit |
 
@@ -73,6 +75,22 @@ wtkill [OPTIONS]
 3. Classifies each worktree as **merged**, **stale**, **detached**, or **active** based on merge status, squash-merge detection, remote branch existence, and last commit date.
 4. Presents an interactive menu to toggle categories for bulk removal, or launches `fzf` for individual selection.
 5. Removes selected worktrees with `git worktree remove --force` and runs `git worktree prune`.
+
+## Development
+
+Lint with [ShellCheck](https://www.shellcheck.net/):
+
+```sh
+shellcheck wtkill install.sh
+```
+
+Run tests with [bats](https://github.com/bats-core/bats-core):
+
+```sh
+bats test/
+```
+
+Both run automatically on every PR via GitHub Actions.
 
 ## License
 

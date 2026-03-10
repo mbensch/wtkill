@@ -20,3 +20,14 @@ updated. Merging that Release PR bumps the version in `wtkill`, updates
 
 Do not edit `CHANGELOG.md` manually. It is auto-generated from commit messages
 by release-please.
+
+## Testing
+
+Before opening a PR, run:
+
+```sh
+shellcheck wtkill install.sh
+bats test/
+```
+
+All ShellCheck warnings must be clean and all bats tests must pass.

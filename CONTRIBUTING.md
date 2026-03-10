@@ -5,13 +5,17 @@
 - bash 4+
 - git
 - fzf
+- [shellcheck](https://www.shellcheck.net/) (for linting)
+- [bats](https://github.com/bats-core/bats-core) (for tests)
 
 ## Making changes
 
 1. Fork the repo and create a branch from `main`.
 2. Make your changes to the `wtkill` script.
-3. Test manually against a real git repo that has multiple worktrees.
-4. Open a PR — the template will guide you.
+3. Lint your changes: `shellcheck wtkill install.sh`
+4. Run the test suite: `bats test/`
+5. Test manually against a real git repo that has multiple worktrees.
+6. Open a PR — the template will guide you.
 
 ## Commit messages
 
