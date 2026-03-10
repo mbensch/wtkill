@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+main() {
+
 ok=true
 
 # Check bash >= 4
@@ -51,3 +53,7 @@ if ! echo "$PATH" | tr ':' '\n' | grep -qx "$PREFIX"; then
   echo "Note: $PREFIX is not in your PATH. Add it with:"
   echo "  export PATH=\"$PREFIX:\$PATH\""
 fi
+
+}
+
+main "$@"
