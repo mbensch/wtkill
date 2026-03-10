@@ -10,7 +10,7 @@ if [[ "${BASH_VERSINFO[0]}" -lt 4 ]]; then
   exit 1
 fi
 
-VERSION="1.2.0"
+VERSION="1.4.1"
 
 # ── Colours ──────────────────────────────────────────────────────────────────
 if [[ -t 1 ]]; then
@@ -47,7 +47,7 @@ for arg in "$@"; do
     --no-fetch)      DO_FETCH=false ;;
     --report-only)   REPORT_ONLY=true ;;
     --stale-days=*)  STALE_DAYS="${arg#*=}" ;;
-    --version|-V)
+    --version|-V|-v)
       echo "wtkill ${VERSION}"
       exit 0
       ;;
@@ -79,7 +79,7 @@ for arg in "$@"; do
       echo "  --report-only      Print classification summary and exit (non-interactive)"
       echo "  --stale-days=N     Days of inactivity to mark as stale (default: 14)"
       echo "  --update           Update wtkill to the latest release"
-      echo "  --version          Show version and exit"
+      echo "  -v, --version      Show version and exit"
       echo "  --help             Show this help"
       echo ""
       echo "Environment:"
