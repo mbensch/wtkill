@@ -1,8 +1,14 @@
-#!/opt/homebrew/bin/bash
+#!/usr/bin/env bash
 # wtkill -- Interactive git worktree cleanup TUI
 # Usage: wtkill [--dry-run] [--no-fetch] [--stale-days=N] [--help]
 
 set -euo pipefail
+
+if [[ "${BASH_VERSINFO[0]}" -lt 4 ]]; then
+  echo "error: bash 4+ required (found ${BASH_VERSION})" >&2
+  echo "  macOS: brew install bash" >&2
+  exit 1
+fi
 
 VERSION="1.2.0"
 
