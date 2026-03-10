@@ -4,6 +4,8 @@ Interactive TUI for cleaning up git worktrees.
 
 Scans your repository for worktrees that are merged, stale, or detached and lets you remove them in bulk or individually — without touching your active work.
 
+![wtkill screenshot](screenshot.png)
+
 ## Features
 
 - Detects merged branches (including squash-merges)
@@ -74,4 +76,4 @@ wtkill [OPTIONS]
 
 ## License
 
-No license has been specified yet.
+[MIT](LICENSE)
