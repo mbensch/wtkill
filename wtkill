@@ -100,7 +100,7 @@ hr() { echo -e "${DIM}$(printf '─%.0s' {1..60})${RESET}"; }
 
 # ── Pre-flight checks ─────────────────────────────────────────────────────────
 command -v git >/dev/null 2>&1 || die "git is not installed"
-command -v fzf >/dev/null 2>&1 || die "fzf is not installed (brew install fzf)"
+$REPORT_ONLY || command -v fzf >/dev/null 2>&1 || die "fzf is not installed (brew install fzf)"
 
 git rev-parse --git-dir >/dev/null 2>&1 || die "Not inside a git repository"
 
