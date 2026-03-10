@@ -1,0 +1,571 @@
+#!/opt/homebrew/bin/bash
+# wtkill -- Interactive git worktree cleanup TUI
+# Usage: wtkill [--dry-run] [--no-fetch] [--stale-days=N] [--help]
+
+set -euo pipefail
+
+VERSION="1.2.0"
+
+# ── Colours ──────────────────────────────────────────────────────────────────
+if [[ -t 1 ]]; then
+  RESET='\033[0m'
+  BOLD='\033[1m'
+  DIM='\033[2m'
+  RED='\033[0;31m'
+  GREEN='\033[0;32m'
+  YELLOW='\033[0;33m'
+  BLUE='\033[0;34m'
+  CYAN='\033[0;36m'
+  WHITE='\033[0;37m'
+  BOLD_GREEN='\033[1;32m'
+  BOLD_YELLOW='\033[1;33m'
+  BOLD_WHITE='\033[1;37m'
+  BOLD_RED='\033[1;31m'
+  BOLD_CYAN='\033[1;36m'
+else
+  RESET='' BOLD='' DIM='' RED='' GREEN='' YELLOW='' BLUE='' CYAN='' WHITE=''
+  BOLD_GREEN='' BOLD_YELLOW='' BOLD_WHITE='' BOLD_RED='' BOLD_CYAN=''
+fi
+
+# ── Defaults ─────────────────────────────────────────────────────────────────
+DRY_RUN=false
+DO_FETCH=true
+STALE_DAYS="${GIT_WT_CLEAN_STALE_DAYS:-14}"
+
+# ── Arg parsing ───────────────────────────────────────────────────────────────
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run)       DRY_RUN=true ;;
+    --no-fetch)      DO_FETCH=false ;;
+    --stale-days=*)  STALE_DAYS="${arg#*=}" ;;
+    --version|-V)
+      echo "wtkill ${VERSION}"
+      exit 0
+      ;;
+    --help|-h)
+      echo "Usage: wtkill [OPTIONS]"
+      echo ""
+      echo "Options:"
+      echo "  --dry-run          Show what would be removed without deleting"
+      echo "  --no-fetch         Skip git fetch --prune"
+      echo "  --stale-days=N     Days of inactivity to mark as stale (default: 14)"
+      echo "  --version          Show version and exit"
+      echo "  --help             Show this help"
+      echo ""
+      echo "Environment:"
+      echo "  GIT_WT_CLEAN_STALE_DAYS  Override default stale days"
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $arg" >&2
+      exit 1
+      ;;
+  esac
+done
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+die() { echo -e "${BOLD_RED}error:${RESET} $*" >&2; exit 1; }
+info() { echo -e "${CYAN}  →${RESET} $*"; }
+hr() { echo -e "${DIM}$(printf '─%.0s' {1..60})${RESET}"; }
+
+# ── Pre-flight checks ─────────────────────────────────────────────────────────
+command -v git >/dev/null 2>&1 || die "git is not installed"
+command -v fzf >/dev/null 2>&1 || die "fzf is not installed (brew install fzf)"
+
+git rev-parse --git-dir >/dev/null 2>&1 || die "Not inside a git repository"
+
+GIT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || git rev-parse --git-dir)"
+MAIN_WT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+
+# ── Banner ────────────────────────────────────────────────────────────────────
+echo ""
+echo -e "${BOLD_CYAN}  git-worktree-clean${RESET}"
+hr
+
+# ── Detect default branch ─────────────────────────────────────────────────────
+detect_default_branch() {
+  local default
+  default="$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||')" || true
+  if [[ -z "$default" ]]; then
+    for candidate in main master trunk develop; do
+      if git rev-parse --verify "$candidate" >/dev/null 2>&1; then
+        default="$candidate"
+        break
+      fi
+    done
+  fi
+  echo "${default:-main}"
+}
+
+DEFAULT_BRANCH="$(detect_default_branch)"
+info "Repository: ${BOLD}$(basename "$GIT_ROOT")${RESET}"
+info "Default branch: ${BOLD}${DEFAULT_BRANCH}${RESET}"
+
+# ── Fetch ─────────────────────────────────────────────────────────────────────
+if $DO_FETCH; then
+  info "Fetching remote state..."
+  git fetch --prune --quiet 2>/dev/null || true
+fi
+
+# ── Parse worktrees ───────────────────────────────────────────────────────────
+declare -a WT_PATHS WT_BRANCHES WT_HEADS WT_IS_MAIN
+declare -A WT_CATEGORY WT_REASON WT_LAST_DATE WT_SIZE
+
+parse_worktrees() {
+  local path="" branch="" head="" is_bare=false is_main_wt=false idx=0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ "$line" == worktree\ * ]]; then
+      if [[ -n "$path" ]] && ! $is_bare; then
+        WT_PATHS[$idx]="$path"
+        WT_BRANCHES[$idx]="${branch:-detached}"
+        WT_HEADS[$idx]="${head:-}"
+        WT_IS_MAIN[$idx]="$is_main_wt"
+        (( idx++ )) || true
+      fi
+      path="${line#worktree }"
+      branch=""
+      head=""
+      is_bare=false
+      is_main_wt=false
+    elif [[ "$line" == "HEAD "* ]]; then
+      head="${line#HEAD }"
+    elif [[ "$line" == "branch "* ]]; then
+      branch="${line#branch refs/heads/}"
+      # Normalise -- could be refs/remotes/... or detached
+      branch="${branch#refs/remotes/}"
+    elif [[ "$line" == "bare" ]]; then
+      is_bare=true
+    elif [[ "$line" == "prunable" ]]; then
+      true
+    fi
+  done < <(git worktree list --porcelain; echo)
+
+  # Last block (no trailing newline guard)
+  if [[ -n "$path" ]] && ! $is_bare; then
+    WT_PATHS[$idx]="$path"
+    WT_BRANCHES[$idx]="${branch:-detached}"
+    WT_HEADS[$idx]="${head:-}"
+    WT_IS_MAIN[$idx]="$is_main_wt"
+  fi
+
+  # Mark the main worktree (the one matching MAIN_WT)
+  for i in "${!WT_PATHS[@]}"; do
+    if [[ "${WT_PATHS[$i]}" == "$MAIN_WT" ]]; then
+      WT_IS_MAIN[$i]=true
+    fi
+  done
+}
+
+parse_worktrees
+
+# ── Merged branches set ───────────────────────────────────────────────────────
+declare -A MERGED_BRANCHES GONE_BRANCHES
+
+build_merged_set() {
+  # Standard merge
+  while IFS= read -r b; do
+    b="${b#  }"; b="${b#* }"  # strip leading spaces and '*'
+    b="${b// /}"
+    [[ -n "$b" ]] && MERGED_BRANCHES["$b"]=1
+  done < <(git branch --merged "$DEFAULT_BRANCH" 2>/dev/null || true)
+
+  # Remote-gone branches
+  while IFS= read -r line; do
+    if [[ "$line" =~ \[.*:\ gone\] ]]; then
+      local bname
+      bname="$(echo "$line" | awk '{print $1}' | sed 's/^\*\ //')"
+      GONE_BRANCHES["$bname"]=1
+    fi
+  done < <(git branch -vv 2>/dev/null || true)
+}
+
+build_merged_set
+
+# ── Squash-merge detection ────────────────────────────────────────────────────
+is_squash_merged() {
+  local branch="$1"
+  local default="$2"
+  # Create a temporary commit of the branch's tree rebased onto the merge-base
+  # then check if git cherry finds it already in default
+  local merge_base
+  merge_base="$(git merge-base "$default" "$branch" 2>/dev/null)" || return 1
+  # If merge_base == HEAD of branch, it's a fast-forward (already merged)
+  local branch_head
+  branch_head="$(git rev-parse "$branch" 2>/dev/null)" || return 1
+  if [[ "$merge_base" == "$branch_head" ]]; then
+    return 0
+  fi
+  # Build a temp commit with the same tree as branch but parented on merge-base
+  local temp_commit
+  temp_commit="$(git commit-tree "$branch^{tree}" -p "$merge_base" -m "squash-merge-check" 2>/dev/null)" || return 1
+  # cherry returns lines prefixed with '-' if equivalent commit exists in default
+  local cherry_out
+  cherry_out="$(git cherry "$default" "$temp_commit" 2>/dev/null)" || return 1
+  [[ "$cherry_out" == -* ]]
+}
+
+# ── Stale date check ──────────────────────────────────────────────────────────
+stale_cutoff_epoch() {
+  if date -v "-${STALE_DAYS}d" +%s >/dev/null 2>&1; then
+    date -v "-${STALE_DAYS}d" +%s  # macOS BSD date
+  else
+    date -d "-${STALE_DAYS} days" +%s  # GNU date
+  fi
+}
+
+STALE_CUTOFF="$(stale_cutoff_epoch)"
+
+last_commit_epoch() {
+  local branch="$1"
+  git log -1 --format="%ct" "$branch" 2>/dev/null || echo "0"
+}
+
+# ── Classify worktrees ────────────────────────────────────────────────────────
+classify_worktrees() {
+  local total="${#WT_PATHS[@]}"
+  info "Analysing ${total} worktree(s)..."
+  echo ""
+  for i in "${!WT_PATHS[@]}"; do
+    local path="${WT_PATHS[$i]}"
+    local branch="${WT_BRANCHES[$i]}"
+    local is_main="${WT_IS_MAIN[$i]}"
+
+    if $is_main || [[ "$branch" == "$DEFAULT_BRANCH" ]]; then
+      WT_CATEGORY[$i]="main"
+      WT_REASON[$i]="main worktree"
+      WT_LAST_DATE[$i]=""
+      WT_SIZE[$i]=""
+      continue
+    fi
+
+    # Disk size
+    local size
+    size="$(du -sh "$path" 2>/dev/null | cut -f1)" || size="?"
+    WT_SIZE[$i]="$size"
+
+    # Last commit date
+    local last_epoch=0 last_date=""
+    if [[ "$branch" != "detached" ]]; then
+      last_epoch="$(last_commit_epoch "$branch")"
+      last_date="$(git log -1 --format="%ci" "$branch" 2>/dev/null | cut -d' ' -f1)" || last_date="?"
+    elif [[ -n "${WT_HEADS[$i]}" ]]; then
+      last_epoch="$(last_commit_epoch "${WT_HEADS[$i]}")"
+      last_date="$(git log -1 --format="%ci" "${WT_HEADS[$i]}" 2>/dev/null | cut -d' ' -f1)" || last_date="?"
+    fi
+    WT_LAST_DATE[$i]="${last_date:-?}"
+
+    # Category detection
+    if [[ "$branch" != "detached" ]]; then
+      if [[ -n "${MERGED_BRANCHES[$branch]+x}" ]]; then
+        WT_CATEGORY[$i]="merged"
+        WT_REASON[$i]="merged into ${DEFAULT_BRANCH}"
+      elif [[ -n "${GONE_BRANCHES[$branch]+x}" ]]; then
+        WT_CATEGORY[$i]="merged"
+        WT_REASON[$i]="remote branch deleted"
+      elif is_squash_merged "$branch" "$DEFAULT_BRANCH" 2>/dev/null; then
+        WT_CATEGORY[$i]="merged"
+        WT_REASON[$i]="squash-merged into ${DEFAULT_BRANCH}"
+      elif [[ "$last_epoch" -lt "$STALE_CUTOFF" ]]; then
+        WT_CATEGORY[$i]="stale"
+        WT_REASON[$i]="no commits in ${STALE_DAYS}+ days"
+      else
+        WT_CATEGORY[$i]="active"
+        WT_REASON[$i]=""
+      fi
+    else
+      WT_CATEGORY[$i]="detached"
+      if [[ "$last_epoch" -lt "$STALE_CUTOFF" ]] && [[ "$last_epoch" -ne 0 ]]; then
+        WT_REASON[$i]="detached HEAD, no commits in ${STALE_DAYS}+ days"
+      else
+        WT_REASON[$i]="detached HEAD"
+      fi
+    fi
+  done
+}
+
+classify_worktrees
+
+# ── Count categories ──────────────────────────────────────────────────────────
+count_merged=0 count_stale=0 count_active=0 count_detached=0
+for i in "${!WT_PATHS[@]}"; do
+  case "${WT_CATEGORY[$i]}" in
+    merged)   (( count_merged++ ))   || true ;;
+    stale)    (( count_stale++ ))    || true ;;
+    detached) (( count_detached++ )) || true ;;
+    active)   (( count_active++ ))   || true ;;
+  esac
+done
+
+total_workrees=$(( count_merged + count_stale + count_detached + count_active ))
+
+# ── Display ───────────────────────────────────────────────────────────────────
+display_section() {
+  local cat="$1" label="$2" colour="$3" count="$4"
+  [[ "$count" -eq 0 ]] && return
+  echo -e "${colour}${BOLD}● ${label}${RESET}"
+  local col_path=40 col_branch=30 col_date=12 col_size=8
+  printf "${DIM}  %-${col_path}s  %-${col_branch}s  %-${col_date}s  %s${RESET}\n" \
+    "PATH" "BRANCH" "LAST COMMIT" "SIZE"
+  for i in "${!WT_PATHS[@]}"; do
+    [[ "${WT_CATEGORY[$i]}" != "$cat" ]] && continue
+    local path="${WT_PATHS[$i]}" branch="${WT_BRANCHES[$i]}"
+    local date="${WT_LAST_DATE[$i]:-?}" size="${WT_SIZE[$i]:-?}"
+    local reason="${WT_REASON[$i]}"
+    local short_path="$path"
+    # Shorten home prefix
+    short_path="${short_path/#$HOME/~}"
+    # Truncate if needed
+    if [[ "${#short_path}" -gt "$col_path" ]]; then
+      short_path="…${short_path: -$((col_path-1))}"
+    fi
+    if [[ "${#branch}" -gt "$col_branch" ]]; then
+      branch="${branch:0:$((col_branch-1))}…"
+    fi
+    printf "  ${colour}%-${col_path}s${RESET}  ${BOLD}%-${col_branch}s${RESET}  ${DIM}%-${col_date}s  %s${RESET}" \
+      "$short_path" "$branch" "$date" "$size"
+    if [[ -n "$reason" ]]; then
+      echo -e "  ${DIM}[${reason}]${RESET}"
+    else
+      echo ""
+    fi
+  done
+  echo ""
+}
+
+echo -e "${BOLD}Found ${total_workrees} worktree(s):${RESET}  ${BOLD_GREEN}${count_merged} merged${RESET}  ${BOLD_YELLOW}${count_stale} stale${RESET}  ${BOLD_RED}${count_detached} detached${RESET}  ${BOLD_WHITE}${count_active} active${RESET}"
+echo ""
+
+display_section "merged"   "MERGED — safe to remove" "$BOLD_GREEN" "$count_merged"
+display_section "stale"    "STALE — no updates in ${STALE_DAYS}+ days" "$BOLD_YELLOW" "$count_stale"
+display_section "detached" "DETACHED — no branch, likely orphaned" "$BOLD_RED" "$count_detached"
+display_section "active"   "ACTIVE" "$BOLD_WHITE" "$count_active"
+
+# ── Helper: collect paths by category ────────────────────────────────────────
+paths_for_categories() {
+  local -a result=()
+  for cat in "$@"; do
+    for i in "${!WT_PATHS[@]}"; do
+      [[ "${WT_CATEGORY[$i]}" == "$cat" ]] && result+=("${WT_PATHS[$i]}")
+    done
+  done
+  printf '%s\n' "${result[@]}"
+}
+
+# ── Helper: human-readable total size ────────────────────────────────────────
+total_size_for_categories() {
+  local paths
+  paths="$(paths_for_categories "$@")"
+  [[ -z "$paths" ]] && echo "0B" && return
+  # Filter to existing paths only, suppress errors for missing ones
+  local existing
+  existing="$(echo "$paths" | while IFS= read -r p; do [[ -d "$p" ]] && echo "$p"; done)"
+  [[ -z "$existing" ]] && echo "?" && return
+  echo "$existing" | tr '\n' '\0' | xargs -0 du -sch 2>/dev/null | tail -1 | cut -f1 || echo "?"
+}
+
+# ── Remove worktrees ──────────────────────────────────────────────────────────
+remove_worktrees() {
+  local -a targets=("$@")
+  local removed=0
+  for path in "${targets[@]}"; do
+    echo -e "  ${DIM}removing ${path}…${RESET}"
+    if $DRY_RUN; then
+      echo -e "  ${YELLOW}[dry-run] would run: git worktree remove --force \"${path}\"${RESET}"
+    else
+      git worktree remove --force "$path" 2>/dev/null \
+        || { echo -e "  ${RED}failed to remove ${path}${RESET}"; continue; }
+    fi
+    (( removed++ )) || true
+  done
+  echo ""
+  if $DRY_RUN; then
+    info "[dry-run] would run: git worktree prune"
+  else
+    info "Running git worktree prune..."
+    git worktree prune
+  fi
+  echo ""
+  echo -e "${BOLD_GREEN}  Done! Removed ${removed} worktree(s).${RESET}"
+}
+
+# ── Action menu ───────────────────────────────────────────────────────────────
+
+# Toggle state: merged pre-selected as it's always safe
+sel_merged=false
+sel_stale=false
+sel_detached=false
+sel_active=false
+[[ "$count_merged" -gt 0 ]] && sel_merged=true
+
+render_menu() {
+  hr
+  echo ""
+  echo -e "${BOLD}Select categories to remove${RESET}  ${DIM}(toggle with number, Enter to confirm, i for individual, q to quit)${RESET}"
+  echo ""
+
+  # merged
+  local mark_m mark_s mark_d mark_a
+  $sel_merged   && mark_m="${BOLD_GREEN}[x]${RESET}" || mark_m="[ ]"
+  $sel_stale    && mark_s="${BOLD_YELLOW}[x]${RESET}" || mark_s="[ ]"
+  $sel_detached && mark_d="${BOLD_RED}[x]${RESET}" || mark_d="[ ]"
+  $sel_active   && mark_a="${BOLD_WHITE}[x]${RESET}" || mark_a="[ ]"
+
+  if [[ "$count_merged" -gt 0 ]]; then
+    local sz; sz="$(total_size_for_categories merged)"
+    echo -e "  ${mark_m} ${BOLD_GREEN}[1]${RESET} Merged    — ${count_merged} worktree(s), ~${sz}"
+  else
+    echo -e "  ${DIM}[ ] [1] Merged    — none found${RESET}"
+  fi
+
+  if [[ "$count_stale" -gt 0 ]]; then
+    local sz; sz="$(total_size_for_categories stale)"
+    echo -e "  ${mark_s} ${BOLD_YELLOW}[2]${RESET} Stale     — ${count_stale} worktree(s), ~${sz}"
+  else
+    echo -e "  ${DIM}[ ] [2] Stale     — none found${RESET}"
+  fi
+
+  if [[ "$count_detached" -gt 0 ]]; then
+    local sz; sz="$(total_size_for_categories detached)"
+    echo -e "  ${mark_d} ${BOLD_RED}[3]${RESET} Detached  — ${count_detached} worktree(s), ~${sz}"
+  else
+    echo -e "  ${DIM}[ ] [3] Detached  — none found${RESET}"
+  fi
+
+  if [[ "$count_active" -gt 0 ]]; then
+    local sz; sz="$(total_size_for_categories active)"
+    echo -e "  ${mark_a} ${BOLD_WHITE}[4]${RESET} Active    — ${count_active} worktree(s), ~${sz}"
+  else
+    echo -e "  ${DIM}[ ] [4] Active    — none found${RESET}"
+  fi
+
+  echo ""
+  echo -e "  ${BOLD_CYAN}[i]${RESET} Select individual worktrees  ${DIM}(fzf multi-select)${RESET}"
+  echo -e "  ${DIM}[q] Quit${RESET}"
+  echo ""
+
+  if $DRY_RUN; then
+    echo -e "  ${YELLOW}${BOLD}[dry-run mode active — no files will be deleted]${RESET}"
+    echo ""
+  fi
+}
+
+fzf_individual() {
+  local fzf_input=""
+  for i in "${!WT_PATHS[@]}"; do
+    local local_cat="${WT_CATEGORY[$i]}"
+    [[ "$local_cat" == "main" ]] && continue
+    local local_path="${WT_PATHS[$i]}"
+    local local_branch="${WT_BRANCHES[$i]}"
+    local local_date="${WT_LAST_DATE[$i]:-?}"
+    local local_size="${WT_SIZE[$i]:-?}"
+    local local_reason="${WT_REASON[$i]}"
+    local tag
+    case "$local_cat" in
+      merged)   tag="[MERGED]  " ;;
+      stale)    tag="[STALE]   " ;;
+      detached) tag="[DETACHED]" ;;
+      *)        tag="[ACTIVE]  " ;;
+    esac
+    fzf_input+="$(printf '%-9s  %-35s  %-12s  %-8s  %s\t%s' \
+      "$tag" "$local_branch" "$local_date" "$local_size" "$local_reason" "$local_path")"$'\n'
+  done
+
+  if [[ -z "$fzf_input" ]]; then
+    echo -e "  ${DIM}No worktrees available to select.${RESET}"
+    return 1
+  fi
+
+  local -a selected
+  mapfile -t selected < <(printf '%s' "$fzf_input" | fzf \
+    --multi \
+    --prompt="  Select worktrees to remove (Tab to toggle, Enter to confirm): " \
+    --header="TAB=toggle  ENTER=confirm  ESC=cancel" \
+    --color="hl:green,hl+:green" \
+    --ansi \
+    --delimiter=$'\t' \
+    --with-nth=1 \
+    --nth=1 \
+    | cut -f2 \
+  ) || true
+
+  if [[ "${#selected[@]}" -eq 0 ]] || [[ -z "${selected[0]}" ]]; then
+    echo "  No selection made. Aborted."
+    exit 0
+  fi
+
+  echo ""
+  echo -e "  Selected ${#selected[@]} worktree(s) for removal:"
+  for p in "${selected[@]}"; do echo -e "    ${DIM}${p}${RESET}"; done
+  echo ""
+  read -r -p "  Proceed? [y/N] " confirm
+  [[ "$confirm" =~ ^[Yy]$ ]] || { echo "  Aborted."; exit 0; }
+  echo ""
+  remove_worktrees "${selected[@]}"
+}
+
+render_menu
+while true; do
+  read -r -p "  > " choice || { echo "  Bye."; exit 0; }
+  case "$choice" in
+    1)
+      [[ "$count_merged"   -gt 0 ]] && { $sel_merged   && sel_merged=false   || sel_merged=true;   } \
+        || echo -e "  ${DIM}No merged worktrees.${RESET}"
+      render_menu
+      ;;
+    2)
+      [[ "$count_stale"    -gt 0 ]] && { $sel_stale    && sel_stale=false    || sel_stale=true;    } \
+        || echo -e "  ${DIM}No stale worktrees.${RESET}"
+      render_menu
+      ;;
+    3)
+      [[ "$count_detached" -gt 0 ]] && { $sel_detached && sel_detached=false || sel_detached=true; } \
+        || echo -e "  ${DIM}No detached worktrees.${RESET}"
+      render_menu
+      ;;
+    4)
+      [[ "$count_active"   -gt 0 ]] && { $sel_active   && sel_active=false   || sel_active=true;   } \
+        || echo -e "  ${DIM}No active worktrees.${RESET}"
+      render_menu
+      ;;
+    i|I)
+      echo ""
+      fzf_individual
+      break
+      ;;
+    "")
+      # Enter — confirm selection
+      local -a selected_cats=()
+      $sel_merged   && selected_cats+=(merged)
+      $sel_stale    && selected_cats+=(stale)
+      $sel_detached && selected_cats+=(detached)
+      $sel_active   && selected_cats+=(active)
+
+      if [[ "${#selected_cats[@]}" -eq 0 ]]; then
+        echo -e "  ${DIM}Nothing selected. Toggle categories first or press q to quit.${RESET}"
+        continue
+      fi
+
+      local -a targets
+      mapfile -t targets < <(paths_for_categories "${selected_cats[@]}")
+      local total_sel="${#targets[@]}"
+      local total_sz
+      total_sz="$(total_size_for_categories "${selected_cats[@]}")"
+
+      echo ""
+      echo -e "  About to remove ${BOLD}${total_sel}${RESET} worktree(s) across: ${BOLD}${selected_cats[*]}${RESET}  (~${total_sz})"
+      echo ""
+      read -r -p "  Proceed? [y/N] " confirm
+      [[ "$confirm" =~ ^[Yy]$ ]] || { echo "  Aborted."; exit 0; }
+      echo ""
+      remove_worktrees "${targets[@]}"
+      break
+      ;;
+    q|Q)
+      echo "  Bye."
+      exit 0
+      ;;
+    *)
+      echo -e "  ${RED}Invalid choice.${RESET} Toggle: 1 2 3 4 | Confirm: Enter | Individual: i | Quit: q"
+      ;;
+  esac
+done
