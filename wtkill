@@ -108,8 +108,21 @@ GIT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || git rev-parse --git-dir
 MAIN_WT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 
 # ── Banner ────────────────────────────────────────────────────────────────────
+# Generated with: figlet -f ~/.local/share/fonts/3d wtkill | lolcat -t --seed 15 --force
+print_banner() {
+  echo -e "\033[38;2;254;61;67m \033[39m\033[38;2;254;57;71m \033[39m\033[38;2;254;54;75m \033[39m\033[38;2;253;50;79m \033[39m\033[38;2;253;47;83m \033[39m\033[38;2;252;44;87m \033[39m\033[38;2;251;41;91m \033[39m\033[38;2;250;38;95m \033[39m\033[38;2;249;35;99m \033[39m\033[38;2;248;32;103m \033[39m\033[38;2;246;29;107m \033[39m\033[38;2;245;26;111m \033[39m\033[38;2;243;24;116m \033[39m\033[38;2;241;22;120m \033[39m\033[38;2;239;19;124m█\033[39m\033[38;2;237;17;128m█\033[39m\033[38;2;235;15;132m \033[39m\033[38;2;233;13;137m \033[39m\033[38;2;230;11;141m \033[39m\033[38;2;228;10;145m█\033[39m\033[38;2;225;8;149m█\033[39m\033[38;2;222;7;153m \033[39m\033[38;2;219;6;158m \033[39m\033[38;2;216;4;162m \033[39m\033[38;2;213;4;166m \033[39m\033[38;2;210;3;170m \033[39m\033[38;2;207;2;174m█\033[39m\033[38;2;204;1;178m█\033[39m\033[38;2;200;1;181m \033[39m\033[38;2;197;1;185m \033[39m\033[38;2;193;1;189m█\033[39m\033[38;2;189;1;193m█\033[39m\033[38;2;186;1;196m \033[39m\033[38;2;182;1;200m \033[39m\033[38;2;178;1;203m█\033[39m\033[38;2;174;2;207m█\033[39m\033[38;2;170;3;210m\033[39m"
+  echo -e "\033[38;2;253;50;79m \033[39m\033[38;2;253;47;83m \033[39m\033[38;2;252;44;87m \033[39m\033[38;2;251;41;91m \033[39m\033[38;2;250;38;95m \033[39m\033[38;2;249;35;99m \033[39m\033[38;2;248;32;103m \033[39m\033[38;2;246;29;107m \033[39m\033[38;2;245;26;111m \033[39m\033[38;2;243;24;116m \033[39m\033[38;2;241;22;120m \033[39m\033[38;2;239;19;124m \033[39m\033[38;2;237;17;128m \033[39m\033[38;2;235;15;132m░\033[39m\033[38;2;233;13;137m█\033[39m\033[38;2;230;11;141m█\033[39m\033[38;2;228;10;145m \033[39m\033[38;2;225;8;149m \033[39m\033[38;2;222;7;153m░\033[39m\033[38;2;219;6;158m█\033[39m\033[38;2;216;4;162m█\033[39m\033[38;2;213;4;166m \033[39m\033[38;2;210;3;170m \033[39m\033[38;2;207;2;174m \033[39m\033[38;2;204;1;178m \033[39m\033[38;2;200;1;181m░\033[39m\033[38;2;197;1;185m░\033[39m\033[38;2;193;1;189m \033[39m\033[38;2;189;1;193m \033[39m\033[38;2;186;1;196m░\033[39m\033[38;2;182;1;200m█\033[39m\033[38;2;178;1;203m█\033[39m\033[38;2;174;2;207m \033[39m\033[38;2;170;3;210m░\033[39m\033[38;2;166;3;213m█\033[39m\033[38;2;162;4;216m█\033[39m\033[38;2;158;6;219m\033[39m"
+  echo -e "\033[38;2;251;41;91m \033[39m\033[38;2;250;38;95m█\033[39m\033[38;2;249;35;99m█\033[39m\033[38;2;248;32;103m█\033[39m\033[38;2;246;29;107m \033[39m\033[38;2;245;26;111m \033[39m\033[38;2;243;24;116m \033[39m\033[38;2;241;22;120m \033[39m\033[38;2;239;19;124m \033[39m\033[38;2;237;17;128m█\033[39m\033[38;2;235;15;132m█\033[39m\033[38;2;233;13;137m \033[39m\033[38;2;230;11;141m█\033[39m\033[38;2;228;10;145m█\033[39m\033[38;2;225;8;149m█\033[39m\033[38;2;222;7;153m█\033[39m\033[38;2;219;6;158m█\033[39m\033[38;2;216;4;162m█\033[39m\033[38;2;213;4;166m░\033[39m\033[38;2;210;3;170m█\033[39m\033[38;2;207;2;174m█\033[39m\033[38;2;204;1;178m \033[39m\033[38;2;200;1;181m \033[39m\033[38;2;197;1;185m█\033[39m\033[38;2;193;1;189m█\033[39m\033[38;2;189;1;193m \033[39m\033[38;2;186;1;196m█\033[39m\033[38;2;182;1;200m█\033[39m\033[38;2;178;1;203m \033[39m\033[38;2;174;2;207m░\033[39m\033[38;2;170;3;210m█\033[39m\033[38;2;166;3;213m█\033[39m\033[38;2;162;4;216m \033[39m\033[38;2;158;6;219m░\033[39m\033[38;2;154;7;222m█\033[39m\033[38;2;150;8;225m█\033[39m\033[38;2;145;10;227m\033[39m"
+  echo -e "\033[38;2;248;32;103m░\033[39m\033[38;2;246;29;107m░\033[39m\033[38;2;245;26;111m█\033[39m\033[38;2;243;24;116m█\033[39m\033[38;2;241;22;120m \033[39m\033[38;2;239;19;124m \033[39m\033[38;2;237;17;128m█\033[39m\033[38;2;235;15;132m \033[39m\033[38;2;233;13;137m░\033[39m\033[38;2;230;11;141m█\033[39m\033[38;2;228;10;145m█\033[39m\033[38;2;225;8;149m░\033[39m\033[38;2;222;7;153m░\033[39m\033[38;2;219;6;158m░\033[39m\033[38;2;216;4;162m█\033[39m\033[38;2;213;4;166m█\033[39m\033[38;2;210;3;170m░\033[39m\033[38;2;207;2;174m \033[39m\033[38;2;204;1;178m░\033[39m\033[38;2;200;1;181m█\033[39m\033[38;2;197;1;185m█\033[39m\033[38;2;193;1;189m \033[39m\033[38;2;189;1;193m█\033[39m\033[38;2;186;1;196m█\033[39m\033[38;2;182;1;200m \033[39m\033[38;2;178;1;203m░\033[39m\033[38;2;174;2;207m█\033[39m\033[38;2;170;3;210m█\033[39m\033[38;2;166;3;213m \033[39m\033[38;2;162;4;216m░\033[39m\033[38;2;158;6;219m█\033[39m\033[38;2;154;7;222m█\033[39m\033[38;2;150;8;225m \033[39m\033[38;2;145;10;227m░\033[39m\033[38;2;141;11;230m█\033[39m\033[38;2;137;13;232m█\033[39m\033[38;2;133;15;235m\033[39m"
+  echo -e "\033[38;2;243;24;116m \033[39m\033[38;2;241;22;120m░\033[39m\033[38;2;239;19;124m█\033[39m\033[38;2;237;17;128m█\033[39m\033[38;2;235;15;132m \033[39m\033[38;2;233;13;137m█\033[39m\033[38;2;230;11;141m█\033[39m\033[38;2;228;10;145m█\033[39m\033[38;2;225;8;149m░\033[39m\033[38;2;222;7;153m█\033[39m\033[38;2;219;6;158m█\033[39m\033[38;2;216;4;162m \033[39m\033[38;2;213;4;166m \033[39m\033[38;2;210;3;170m░\033[39m\033[38;2;207;2;174m█\033[39m\033[38;2;204;1;178m█\033[39m\033[38;2;200;1;181m \033[39m\033[38;2;197;1;185m \033[39m\033[38;2;193;1;189m░\033[39m\033[38;2;189;1;193m█\033[39m\033[38;2;186;1;196m█\033[39m\033[38;2;182;1;200m█\033[39m\033[38;2;178;1;203m█\033[39m\033[38;2;174;2;207m \033[39m\033[38;2;170;3;210m \033[39m\033[38;2;166;3;213m░\033[39m\033[38;2;162;4;216m█\033[39m\033[38;2;158;6;219m█\033[39m\033[38;2;154;7;222m \033[39m\033[38;2;150;8;225m░\033[39m\033[38;2;145;10;227m█\033[39m\033[38;2;141;11;230m█\033[39m\033[38;2;137;13;232m \033[39m\033[38;2;133;15;235m░\033[39m\033[38;2;129;17;237m█\033[39m\033[38;2;124;19;239m█\033[39m\033[38;2;120;21;241m\033[39m"
+  echo -e "\033[38;2;237;17;128m \033[39m\033[38;2;235;15;132m░\033[39m\033[38;2;233;13;137m█\033[39m\033[38;2;230;11;141m█\033[39m\033[38;2;228;10;145m█\033[39m\033[38;2;225;8;149m█\033[39m\033[38;2;222;7;153m░\033[39m\033[38;2;219;6;158m█\033[39m\033[38;2;216;4;162m█\033[39m\033[38;2;213;4;166m█\033[39m\033[38;2;210;3;170m█\033[39m\033[38;2;207;2;174m \033[39m\033[38;2;204;1;178m \033[39m\033[38;2;200;1;181m░\033[39m\033[38;2;197;1;185m█\033[39m\033[38;2;193;1;189m█\033[39m\033[38;2;189;1;193m \033[39m\033[38;2;186;1;196m \033[39m\033[38;2;182;1;200m░\033[39m\033[38;2;178;1;203m█\033[39m\033[38;2;174;2;207m█\033[39m\033[38;2;170;3;210m░\033[39m\033[38;2;166;3;213m█\033[39m\033[38;2;162;4;216m█\033[39m\033[38;2;158;6;219m \033[39m\033[38;2;154;7;222m░\033[39m\033[38;2;150;8;225m█\033[39m\033[38;2;145;10;227m█\033[39m\033[38;2;141;11;230m \033[39m\033[38;2;137;13;232m░\033[39m\033[38;2;133;15;235m█\033[39m\033[38;2;129;17;237m█\033[39m\033[38;2;124;19;239m \033[39m\033[38;2;120;21;241m░\033[39m\033[38;2;116;24;243m█\033[39m\033[38;2;112;26;245m█\033[39m\033[38;2;107;29;246m\033[39m"
+  echo -e "\033[38;2;230;11;141m \033[39m\033[38;2;228;10;145m█\033[39m\033[38;2;225;8;149m█\033[39m\033[38;2;222;7;153m█\033[39m\033[38;2;219;6;158m░\033[39m\033[38;2;216;4;162m \033[39m\033[38;2;213;4;166m░\033[39m\033[38;2;210;3;170m░\033[39m\033[38;2;207;2;174m░\033[39m\033[38;2;204;1;178m█\033[39m\033[38;2;200;1;181m█\033[39m\033[38;2;197;1;185m \033[39m\033[38;2;193;1;189m \033[39m\033[38;2;189;1;193m░\033[39m\033[38;2;186;1;196m░\033[39m\033[38;2;182;1;200m█\033[39m\033[38;2;178;1;203m█\033[39m\033[38;2;174;2;207m \033[39m\033[38;2;170;3;210m░\033[39m\033[38;2;166;3;213m█\033[39m\033[38;2;162;4;216m█\033[39m\033[38;2;158;6;219m░\033[39m\033[38;2;154;7;222m░\033[39m\033[38;2;150;8;225m█\033[39m\033[38;2;145;10;227m█\033[39m\033[38;2;141;11;230m░\033[39m\033[38;2;137;13;232m█\033[39m\033[38;2;133;15;235m█\033[39m\033[38;2;129;17;237m \033[39m\033[38;2;124;19;239m█\033[39m\033[38;2;120;21;241m█\033[39m\033[38;2;116;24;243m█\033[39m\033[38;2;112;26;245m \033[39m\033[38;2;107;29;246m█\033[39m\033[38;2;103;32;248m█\033[39m\033[38;2;99;34;249m█\033[39m\033[38;2;95;37;250m\033[39m"
+  echo -e "\033[38;2;222;7;153m░\033[39m\033[38;2;219;6;158m░\033[39m\033[38;2;216;4;162m░\033[39m\033[38;2;213;4;166m \033[39m\033[38;2;210;3;170m \033[39m\033[38;2;207;2;174m \033[39m\033[38;2;204;1;178m \033[39m\033[38;2;200;1;181m░\033[39m\033[38;2;197;1;185m░\033[39m\033[38;2;193;1;189m░\033[39m\033[38;2;189;1;193m \033[39m\033[38;2;186;1;196m \033[39m\033[38;2;182;1;200m \033[39m\033[38;2;178;1;203m \033[39m\033[38;2;174;2;207m░\033[39m\033[38;2;170;3;210m░\033[39m\033[38;2;166;3;213m \033[39m\033[38;2;162;4;216m \033[39m\033[38;2;158;6;219m░\033[39m\033[38;2;154;7;222m░\033[39m\033[38;2;150;8;225m \033[39m\033[38;2;145;10;227m \033[39m\033[38;2;141;11;230m░\033[39m\033[38;2;137;13;232m░\033[39m\033[38;2;133;15;235m \033[39m\033[38;2;129;17;237m░\033[39m\033[38;2;124;19;239m░\033[39m\033[38;2;120;21;241m \033[39m\033[38;2;116;24;243m░\033[39m\033[38;2;112;26;245m░\033[39m\033[38;2;107;29;246m░\033[39m\033[38;2;103;32;248m \033[39m\033[38;2;99;34;249m░\033[39m\033[38;2;95;37;250m░\033[39m\033[38;2;91;40;251m░\033[39m\033[38;2;87;44;252m \033[39m\033[38;2;83;47;253m\033[39m"
+}
+
 echo ""
-echo -e "${BOLD_CYAN}  git-worktree-clean${RESET}"
+print_banner
+echo -e "${DIM}  a roomba for worktrees${RESET}"
 hr
 
 # ── Detect default branch ─────────────────────────────────────────────────────
@@ -203,7 +216,7 @@ build_merged_set() {
   while IFS= read -r line; do
     if [[ "$line" =~ \[.*:\ gone\] ]]; then
       local bname
-      bname="$(echo "$line" | awk '{print $1}' | sed 's/^\*\ //')"
+      bname="$(echo "$line" | sed 's/^[[:space:]]*[*+][[:space:]]*//' | awk '{print $1}')"
       GONE_BRANCHES["$bname"]=1
     fi
   done < <(git branch -vv 2>/dev/null || true)
@@ -432,56 +445,202 @@ sel_detached=false
 sel_active=false
 [[ "$count_merged" -gt 0 ]] && sel_merged=true
 
-render_menu() {
-  hr
-  echo ""
-  echo -e "${BOLD}Select categories to remove${RESET}  ${DIM}(toggle with number, Enter to confirm, i for individual, q to quit)${RESET}"
-  echo ""
+# Restore cursor on exit
+trap 'tput cnorm 2>/dev/null || true' EXIT
 
-  # merged
-  local mark_m mark_s mark_d mark_a
-  $sel_merged   && mark_m="${BOLD_GREEN}[x]${RESET}" || mark_m="[ ]"
-  $sel_stale    && mark_s="${BOLD_YELLOW}[x]${RESET}" || mark_s="[ ]"
-  $sel_detached && mark_d="${BOLD_RED}[x]${RESET}" || mark_d="[ ]"
-  $sel_active   && mark_a="${BOLD_WHITE}[x]${RESET}" || mark_a="[ ]"
-
-  if [[ "$count_merged" -gt 0 ]]; then
-    local sz; sz="$(total_size_for_categories merged)"
-    echo -e "  ${mark_m} ${BOLD_GREEN}[1]${RESET} Merged    — ${count_merged} worktree(s), ~${sz}"
+# Read a single keypress; sets KEY to the logical key name
+read_key() {
+  local ch
+  IFS= read -rsn1 ch
+  if [[ "$ch" == $'\x1b' ]]; then
+    local seq1 seq2
+    IFS= read -rsn1 -t 0.1 seq1 || true
+    IFS= read -rsn1 -t 0.1 seq2 || true
+    case "${seq1}${seq2}" in
+      '[A') KEY="up"    ;;
+      '[B') KEY="down"  ;;
+      *)    KEY="esc"   ;;
+    esac
+  elif [[ "$ch" == '' ]]; then
+    KEY="enter"
+  elif [[ "$ch" == ' ' ]]; then
+    KEY="space"
   else
-    echo -e "  ${DIM}[ ] [1] Merged    — none found${RESET}"
+    KEY="$ch"
   fi
+}
 
-  if [[ "$count_stale" -gt 0 ]]; then
-    local sz; sz="$(total_size_for_categories stale)"
-    echo -e "  ${mark_s} ${BOLD_YELLOW}[2]${RESET} Stale     — ${count_stale} worktree(s), ~${sz}"
-  else
-    echo -e "  ${DIM}[ ] [2] Stale     — none found${RESET}"
+MENU_LINES=0
+
+# Render the TUI menu in-place.
+# Args: $1 = current highlighted row (0-3)
+render_menu_tui() {
+  local pos="$1"
+  local -a labels=("Merged" "Stale" "Detached" "Active")
+  local -a counts=("$count_merged" "$count_stale" "$count_detached" "$count_active")
+  local -a colours=("$BOLD_GREEN" "$BOLD_YELLOW" "$BOLD_RED" "$BOLD_WHITE")
+  local -a sels=("$sel_merged" "$sel_stale" "$sel_detached" "$sel_active")
+  local -a sizes=("$sz_merged" "$sz_stale" "$sz_detached" "$sz_active")
+  local lines=0
+
+  # Move cursor up to overwrite previous render, then erase to end of screen
+  if [[ "$MENU_LINES" -gt 0 ]]; then
+    echo -en "\033[${MENU_LINES}A"
   fi
+  echo -en '\033[J'
 
-  if [[ "$count_detached" -gt 0 ]]; then
-    local sz; sz="$(total_size_for_categories detached)"
-    echo -e "  ${mark_d} ${BOLD_RED}[3]${RESET} Detached  — ${count_detached} worktree(s), ~${sz}"
-  else
-    echo -e "  ${DIM}[ ] [3] Detached  — none found${RESET}"
-  fi
+  echo -e "${BOLD}Select categories to remove:${RESET}"; (( lines++ )) || true
+  echo -e "${DIM}  ↑/↓ or j/k to move  Space to toggle  Enter to confirm  i for fzf  q to quit${RESET}"; (( lines++ )) || true
+  echo ""; (( lines++ )) || true
 
-  if [[ "$count_active" -gt 0 ]]; then
-    local sz; sz="$(total_size_for_categories active)"
-    echo -e "  ${mark_a} ${BOLD_WHITE}[4]${RESET} Active    — ${count_active} worktree(s), ~${sz}"
-  else
-    echo -e "  ${DIM}[ ] [4] Active    — none found${RESET}"
-  fi
+  for row in 0 1 2 3; do
+    local colour="${colours[$row]}"
+    local label="${labels[$row]}"
+    local count="${counts[$row]}"
+    local sel="${sels[$row]}"
+    local sz="${sizes[$row]}"
+    local cursor_mark="  "
+    [[ "$row" -eq "$pos" ]] && cursor_mark="${BOLD_CYAN}> ${RESET}"
+    if [[ "$count" -gt 0 ]]; then
+      local mark; $sel && mark="${colour}[x]${RESET}" || mark="[ ]"
+      local line="${cursor_mark}${mark} ${colour}${label}${RESET}"
+      [[ "$row" -eq "$pos" ]] && line="${cursor_mark}${mark} ${BOLD}${colour}${label}${RESET}"
+      echo -e "  ${line}  ${DIM}${count} worktree(s), ~${sz}${RESET}"; (( lines++ )) || true
+    else
+      echo -e "  ${cursor_mark}${DIM}[ ] ${label}  — none found${RESET}"; (( lines++ )) || true
+    fi
+  done
 
-  echo ""
-  echo -e "  ${BOLD_CYAN}[i]${RESET} Select individual worktrees  ${DIM}(fzf multi-select)${RESET}"
-  echo -e "  ${DIM}[q] Quit${RESET}"
-  echo ""
+  echo ""; (( lines++ )) || true
+  echo -e "  ${BOLD_CYAN}[i]${RESET} Select individual worktrees  ${DIM}(fzf)${RESET}   ${DIM}[q] Quit${RESET}"; (( lines++ )) || true
 
   if $DRY_RUN; then
-    echo -e "  ${YELLOW}${BOLD}[dry-run mode active — no files will be deleted]${RESET}"
-    echo ""
+    echo ""; (( lines++ )) || true
+    echo -e "  ${YELLOW}${BOLD}[dry-run mode active — no files will be deleted]${RESET}"; (( lines++ )) || true
   fi
+  echo ""; (( lines++ )) || true
+
+  MENU_LINES=$lines
+}
+
+# Returns the index of the next navigable row (count > 0), wrapping around
+next_navigable() {
+  local current="$1" dir="$2"
+  local -a counts=("$count_merged" "$count_stale" "$count_detached" "$count_active")
+  local candidate="$current"
+  for _ in 0 1 2 3; do
+    candidate=$(( (candidate + dir + 4) % 4 ))
+    if [[ "${counts[$candidate]}" -gt 0 ]]; then
+      echo "$candidate"
+      return
+    fi
+  done
+  echo "$current"
+}
+
+toggle_row() {
+  local row="$1"
+  case "$row" in
+    0) $sel_merged   && sel_merged=false   || sel_merged=true   ;;
+    1) $sel_stale    && sel_stale=false    || sel_stale=true     ;;
+    2) $sel_detached && sel_detached=false || sel_detached=true  ;;
+    3) $sel_active   && sel_active=false   || sel_active=true    ;;
+  esac
+}
+
+tui_menu() {
+  # Find the first navigable row
+  local pos=0
+  local -a counts=("$count_merged" "$count_stale" "$count_detached" "$count_active")
+  local found=false
+  for i in 0 1 2 3; do
+    if [[ "${counts[$i]}" -gt 0 ]]; then
+      pos=$i
+      found=true
+      break
+    fi
+  done
+
+  if ! $found; then
+    echo -e "  ${DIM}No removable worktrees found.${RESET}"
+    exit 0
+  fi
+
+  # Pre-compute sizes once so render_menu_tui doesn't call du on every keypress
+  sz_merged="$(total_size_for_categories merged)"
+  sz_stale="$(total_size_for_categories stale)"
+  sz_detached="$(total_size_for_categories detached)"
+  sz_active="$(total_size_for_categories active)"
+
+  hr
+  echo ""
+  tput civis 2>/dev/null || true
+  render_menu_tui "$pos"
+
+  while true; do
+    read_key
+    case "$KEY" in
+      up|k)
+        pos="$(next_navigable "$pos" -1)"
+        render_menu_tui "$pos"
+        ;;
+      down|j)
+        pos="$(next_navigable "$pos" 1)"
+        render_menu_tui "$pos"
+        ;;
+      space)
+        # Only toggle if row has items
+        if [[ "${counts[$pos]}" -gt 0 ]]; then
+          toggle_row "$pos"
+          # Refresh sels array for render
+          sels=("$sel_merged" "$sel_stale" "$sel_detached" "$sel_active")
+          render_menu_tui "$pos"
+        fi
+        ;;
+      enter)
+        tput cnorm 2>/dev/null || true
+        echo ""
+        local selected_cats=()
+        $sel_merged   && selected_cats+=(merged)
+        $sel_stale    && selected_cats+=(stale)
+        $sel_detached && selected_cats+=(detached)
+        $sel_active   && selected_cats+=(active)
+
+        if [[ "${#selected_cats[@]}" -eq 0 ]]; then
+          echo -e "  ${DIM}Nothing selected. Use Space to toggle categories.${RESET}"
+          tput civis 2>/dev/null || true
+          render_menu_tui "$pos"
+          continue
+        fi
+
+        local targets=()
+        mapfile -t targets < <(paths_for_categories "${selected_cats[@]}")
+        local total_sel="${#targets[@]}"
+        local total_sz; total_sz="$(total_size_for_categories "${selected_cats[@]}")"
+
+        echo ""
+        echo -e "  About to remove ${BOLD}${total_sel}${RESET} worktree(s) across: ${BOLD}${selected_cats[*]}${RESET}  (~${total_sz})"
+        echo ""
+        read -r -p "  Proceed? [y/N] " confirm
+        [[ "$confirm" =~ ^[Yy]$ ]] || { echo "  Aborted."; exit 0; }
+        echo ""
+        remove_worktrees "${targets[@]}"
+        return
+        ;;
+      i|I)
+        tput cnorm 2>/dev/null || true
+        echo ""
+        fzf_individual
+        return
+        ;;
+      q|Q)
+        tput cnorm 2>/dev/null || true
+        echo ""
+        echo "  Bye."
+        exit 0
+        ;;
+    esac
+  done
 }
 
 fzf_individual() {
@@ -538,68 +697,4 @@ fzf_individual() {
   remove_worktrees "${selected[@]}"
 }
 
-render_menu
-while true; do
-  read -r -p "  > " choice || { echo "  Bye."; exit 0; }
-  case "$choice" in
-    1)
-      [[ "$count_merged"   -gt 0 ]] && { $sel_merged   && sel_merged=false   || sel_merged=true;   } \
-        || echo -e "  ${DIM}No merged worktrees.${RESET}"
-      render_menu
-      ;;
-    2)
-      [[ "$count_stale"    -gt 0 ]] && { $sel_stale    && sel_stale=false    || sel_stale=true;    } \
-        || echo -e "  ${DIM}No stale worktrees.${RESET}"
-      render_menu
-      ;;
-    3)
-      [[ "$count_detached" -gt 0 ]] && { $sel_detached && sel_detached=false || sel_detached=true; } \
-        || echo -e "  ${DIM}No detached worktrees.${RESET}"
-      render_menu
-      ;;
-    4)
-      [[ "$count_active"   -gt 0 ]] && { $sel_active   && sel_active=false   || sel_active=true;   } \
-        || echo -e "  ${DIM}No active worktrees.${RESET}"
-      render_menu
-      ;;
-    i|I)
-      echo ""
-      fzf_individual
-      break
-      ;;
-    "")
-      # Enter — confirm selection
-      selected_cats=()
-      $sel_merged   && selected_cats+=(merged)
-      $sel_stale    && selected_cats+=(stale)
-      $sel_detached && selected_cats+=(detached)
-      $sel_active   && selected_cats+=(active)
-
-      if [[ "${#selected_cats[@]}" -eq 0 ]]; then
-        echo -e "  ${DIM}Nothing selected. Toggle categories first or press q to quit.${RESET}"
-        continue
-      fi
-
-      targets=()
-      mapfile -t targets < <(paths_for_categories "${selected_cats[@]}")
-      total_sel="${#targets[@]}"
-      total_sz="$(total_size_for_categories "${selected_cats[@]}")"
-
-      echo ""
-      echo -e "  About to remove ${BOLD}${total_sel}${RESET} worktree(s) across: ${BOLD}${selected_cats[*]}${RESET}  (~${total_sz})"
-      echo ""
-      read -r -p "  Proceed? [y/N] " confirm
-      [[ "$confirm" =~ ^[Yy]$ ]] || { echo "  Aborted."; exit 0; }
-      echo ""
-      remove_worktrees "${targets[@]}"
-      break
-      ;;
-    q|Q)
-      echo "  Bye."
-      exit 0
-      ;;
-    *)
-      echo -e "  ${RED}Invalid choice.${RESET} Toggle: 1 2 3 4 | Confirm: Enter | Individual: i | Quit: q"
-      ;;
-  esac
-done
+tui_menu
