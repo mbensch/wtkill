@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/mbensch/wtkill/compare/v1.4.3...v1.5.0) (2026-03-11)
+
+
+### Features
+
+* in-place TUI multi-select menu with lolcat banner ([#12](https://github.com/mbensch/wtkill/issues/12)) ([c864a4a](https://github.com/mbensch/wtkill/commit/c864a4a1b1993df19994a0d2ad4655792486ae05))
+
 ## [1.4.3](https://github.com/mbensch/wtkill/compare/v1.4.2...v1.4.3) (2026-03-10)
 
 
